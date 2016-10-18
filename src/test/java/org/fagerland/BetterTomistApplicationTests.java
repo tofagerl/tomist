@@ -1,6 +1,7 @@
 package org.fagerland;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ public class BetterTomistApplicationTests {
     @Autowired
     ClassRepository classRepo;
 
-    Group bio, handySubjects, tech, advanced;
+    Group bio, handy, tech, advanced;
 
     @Autowired
     GroupRepository groupRepo;
@@ -45,6 +46,9 @@ public class BetterTomistApplicationTests {
 
         // Wipe repositories
         studentRepo.deleteAll();
+        groupRepo.deleteAll();
+        subjectRepo.deleteAll();
+        classRepo.deleteAll();
 
         // Create test students
         alan = new Student("Alan Grant", 2);
@@ -83,38 +87,33 @@ public class BetterTomistApplicationTests {
         // Create test groups
         // Note that the default values of
         // minStudents and maxStudents are both 2, but
-        bio = new Group("Biology", paleobotany, paleontology);
         // This group is REALLY important, so even if it only has one student, it should be taught.
-        handySubjects = new Group("Handy Subjects", 1, 4, running, rescue, flying);
+        handy = new Group("Handy Subjects", 1, 4, running, rescue, flying);
         tech = new Group("Advanced technologies", dna, unix);
         advanced = new Group("Dynamic Maths", chaos);
+        // This group takes up a lot of resources, so it will not be taught unless it has at least six students
+        bio = new Group("Biology", 6, 12, paleobotany, paleontology);
+
 
         // Insert groups
-        groupRepo.save(Arrays.asList(bio, handySubjects, tech, advanced));
+        groupRepo.save(Arrays.asList(bio, handy, tech, advanced));
 
         /*
         Assign students to subjects
         As they are added, groups are located, and students added to it.
         If group is full, student is unplaced.
          */
-        alan.addSubject(paleontology);
-        alan.addSubject(running);
-        alan.addSubject(rescue);
-        ellie.addSubject(paleobotany);
-        ellie.addSubject(running);
-        ellie.addSubject(rescue);
-        ian.addSubject(chaos);
-        ian.addSubject(rescue);
-        ian.addSubject(flying);
-        john.addSubject(dna);
-        john.addSubject(paleontology);
-        john.addSubject(paleobotany);
-        john.addSubject(flying);
-        tim.addSubject(paleobotany);
-        tim.addSubject(paleontology);
-        tim.addSubject(running);
-        lex.addSubject(unix);
-        lex.addSubject(running);
+        alan.addSubject(paleontology, bio);
+        alan.addSubject(running, handy);
+        ellie.addSubject(paleobotany, bio);
+        ellie.addSubject(running, handy);
+        tim.addSubject(paleontology, bio);
+        tim.addSubject(running, handy);
+        lex.addSubject(unix, tech);
+        lex.addSubject(running, handy);
+        ian.addSubject(chaos, advanced);
+        john.addSubject(dna, tech);
+        john.addSubject(paleontology, bio);
     }
 
 
@@ -122,7 +121,7 @@ public class BetterTomistApplicationTests {
     // Student
     @Test
     public void studentRepoWasReset() throws Exception {
-        long expected = 6; // We know there are six classes, because we created and inserted them manually
+        long expected = 6; // We know there are six students, because we created and inserted them manually
         long actual = studentRepo.count();
         assertEquals(expected, actual);
     }
@@ -160,12 +159,35 @@ public class BetterTomistApplicationTests {
         Student actualStudent = studentRepo.findByName(expectedName);
         assertEquals(expectedName, actualStudent.getName());
     }
+    @Test
+    public void addSubject(){
+        assertEquals(true,lex.getSubjects().contains(unix));
+        assertEquals(true, lex.getGroups().contains(tech));
+    }
     // No new methods in Class and Subject, so it's not necessary to unit test those classes.
-    // SubjectRepo
+    // Group
+    @Test
+    public void hasSpace() throws Exception{
+        boolean techFree = tech.hasSpace();
+        boolean handyFree = handy.hasSpace();
+        // There should only be two students in this class, Lex and Ian. The max is set to three.
+        assertEquals(true, techFree);
+        //
+        assertEquals(false, handyFree);
+    }
+    @Test
+    public void hasEnoughStudents() throws Exception{
+        boolean techWillBeTaught = tech.hasEnoughStudents(); // true
+        boolean bioWillBeTaught = bio.hasEnoughStudents(); // false
+        assertEquals(true, techWillBeTaught);
+        assertEquals(false, bioWillBeTaught);
+    }
+    // groupRepo
     @Test
     public void findGroupBySubject() throws Exception{
         Group expected = tech;
-        List<Group> actualGroups = groupRepo.findBySubjects(dna); // There is only one group learning "Generating Dinosaurs from extinct DNA"
+        // There is only one group learning "Generating Dinosaurs from extinct DNA"
+        List<Group> actualGroups = groupRepo.findBySubjects(dna);
         Group actual = actualGroups.get(0);
         assertEquals(actual.getClass(), expected.getClass());
         assertEquals(actual.getId(), expected.getId());

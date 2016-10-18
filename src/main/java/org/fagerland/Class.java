@@ -7,6 +7,9 @@ import javax.persistence.Entity;
  */
 @Entity
 public class Class extends BaseEntity {
+    public Class() {
+    }
+
     public Class(String name) {
         super(name);
     }
