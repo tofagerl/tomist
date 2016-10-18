@@ -56,9 +56,7 @@ public class Student extends BaseEntity {
         if (group.getStudents().contains(subject)) return false;
         // If we're making a mistake, and the subject isn't actually taught in the group, we need to throw an exception
         if(!subject.getGroups().contains(group) || !group.getSubjects().contains(subject)) {
-            System.out.println(group.getSubjects());
-            System.out.println(subject.getGroups());
-            throw new Exception(String.format("Trying to add student to group with incompatible subject!\nStudent: %s\nGroup: %s\n Subject: %s ", this, group, subject));
+            throw new Exception("Trying to add student to group with incompatible subject!");
         }
         // If group is full, return false
         if (!group.hasSpace()) return false;

@@ -2,7 +2,9 @@ package org.fagerland;
 
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -159,10 +161,47 @@ public class BetterTomistApplicationTests {
         Student actualStudent = studentRepo.findByName(expectedName);
         assertEquals(expectedName, actualStudent.getName());
     }
+    // Student.addSubject()
+    // This part is pretty boring, it just validates the bidirectional relationships included when one student is put in one group to learn one subject!
     @Test
-    public void addSubject(){
+    public void studentHasSubject(){
         assertEquals(true,lex.getSubjects().contains(unix));
+    }
+    @Test
+    public void subjectHasStudent(){
+        assertEquals(true, unix.getStudents().contains(lex));
+    }
+    @Test
+    public void studentHasGroup(){
         assertEquals(true, lex.getGroups().contains(tech));
+    }
+    @Test
+    public void groupHasStudent(){
+        assertEquals(true, tech.getStudents().contains(lex));
+    }
+    @Test
+    public void groupHasSubject(){
+        assertEquals(true, tech.getSubjects().contains(unix));
+    }
+    @Test
+    public void SubjectHasGroup(){
+        assertEquals(true, unix.getGroups().contains(tech));
+    }
+    // Testing for negative results
+    @Test
+    public void addToFullGroup() throws java.lang.Exception{
+        // Group is full
+        assertEquals(false, ian.addSubject(running, handy));
+    }
+    // Testing for exceptions
+    @Rule
+    public ExpectedException exception= ExpectedException.none();
+    @Test
+    public void groupWithIncorrectSubject() throws java.lang.Exception{
+        // Group handy does not onclude unix
+        exception.expect(java.lang.Exception.class);
+        exception.expectMessage("Trying to add student to group with incompatible subject!");
+        tim.addSubject(unix, handy);
     }
     // No new methods in Class and Subject, so it's not necessary to unit test those classes.
     // Group
@@ -172,7 +211,7 @@ public class BetterTomistApplicationTests {
         boolean handyFree = handy.hasSpace();
         // There should only be two students in this class, Lex and Ian. The max is set to three.
         assertEquals(true, techFree);
-        //
+        // This group, on the other hand, should be full
         assertEquals(false, handyFree);
     }
     @Test
