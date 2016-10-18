@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -160,5 +161,15 @@ public class BetterTomistApplicationTests {
         assertEquals(expectedName, actualStudent.getName());
     }
     // No new methods in Class and Subject, so it's not necessary to unit test those classes.
+    // SubjectRepo
+    @Test
+    public void findGroupBySubject() throws Exception{
+        Group expected = tech;
+        List<Group> actualGroups = groupRepo.findBySubjects(dna); // There is only one group learning "Generating Dinosaurs from extinct DNA"
+        Group actual = actualGroups.get(0);
+        assertEquals(actual.getClass(), expected.getClass());
+        assertEquals(actual.getId(), expected.getId());
+        assertEquals(actual.getName(), expected.getName());
+    }
 
 }

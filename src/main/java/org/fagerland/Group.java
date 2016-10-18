@@ -19,6 +19,9 @@ public class Group extends BaseEntity {
     @ManyToMany
     private List<Student> students;
 
+    public Group() {
+    }
+
     public Group(String name, int minStudents, int maxStudents, Subject... subjects) {
         super(name);
         this.subjects = new ArrayList<Subject>();
